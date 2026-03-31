@@ -12,4 +12,5 @@ if(USE_SYSTEM_CHEWING_CLI)
 endif()
 
 add_subdirectory(dict/chewing)
+add_subdirectory(dict/moe)
 add_subdirectory(misc)

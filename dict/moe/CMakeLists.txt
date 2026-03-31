@@ -1,5 +1,5 @@
-set(TARGETS word.dat tsi.dat alt.dat mini.dat)
-add_custom_target(dict_chewing ALL DEPENDS ${TARGETS})
+set(TARGETS moe_dict_concised.dat)
+add_custom_target(dict_moe ALL DEPENDS ${TARGETS})
 
 foreach(TARGET ${TARGETS})
   string(REPLACE "dat" "csv" SRC ${TARGET})

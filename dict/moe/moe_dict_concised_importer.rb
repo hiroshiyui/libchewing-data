@@ -2,19 +2,21 @@
 # frozen_string_literal: true
 
 # Imports 教育部國語辭典簡編本 from the MoE download page and converts it to
-# dict/chewing/moe_dict_concised.csv for use with libchewing.
+# dict/moe/moe_dict_concised.csv for use with libchewing.
 #
 # Usage:
-#   ruby scripts/moe_dict_concised_importer.rb              # download from MoE
-#   ruby scripts/moe_dict_concised_importer.rb path/to.zip  # use local ZIP
-#   ruby scripts/moe_dict_concised_importer.rb path/to.xlsx # use local XLSX
+#   ruby dict/moe/moe_dict_concised_importer.rb              # download from MoE
+#   ruby dict/moe/moe_dict_concised_importer.rb path/to.zip  # use local ZIP
+#   ruby dict/moe/moe_dict_concised_importer.rb path/to.xlsx # use local XLSX
 
 require 'net/http'
 require 'uri'
 require 'tmpdir'
+require 'fileutils'
 
 DOWNLOAD_PAGE = 'https://language.moe.gov.tw/001/Upload/Files/site_content/M0001/respub/dict_concised_download.html'
-OUTPUT_FILE = File.expand_path('../dict/chewing/moe_dict_concised.csv', __dir__)
+SOURCES_DIR   = File.expand_path('sources', __dir__)
+OUTPUT_FILE   = File.expand_path('moe_dict_concised.csv', __dir__)
 
 DC_TITLE   = '教育部國語辭典簡編本詞庫'
 DC_RIGHTS  = '中華民國教育部（Ministry of Education, R.O.C.）。《國語辭典簡編本》（版本編號：%s ）網址： http://dict.concised.moe.edu.tw /'
@@ -99,7 +101,7 @@ BOPOMOFO_COL     = 'G'
 VARIANT_BOPO_COL = 'I'
 WANTED_COLS      = [PHRASE_COL, BOPOMOFO_COL, VARIANT_BOPO_COL].freeze
 
-def normalize_bopo(str)
+def normalize_bopomofo(str)
   str.to_s.gsub("\u3000", ' ').strip
      .gsub(/˙([ㄅ-ㄩ]+)/, '\1˙')
      .gsub(/([ˊˇˋ˙])([ㄅ-ㄩ])/, '\1 \2')
@@ -133,12 +135,12 @@ def parse_sheet_entries(xlsx_path, strings)
     end
 
     phrase = cells[PHRASE_COL].to_s.strip.gsub(/[，、。！？；：「」『』【】〔〕《》〈〉…—～·]/, '')
-    bopo   = normalize_bopo(cells[BOPOMOFO_COL])
+    bopo   = normalize_bopomofo(cells[BOPOMOFO_COL])
     next if phrase.empty? || bopo.empty?
 
     entries << [phrase, bopo]
 
-    variant = normalize_bopo(cells[VARIANT_BOPO_COL])
+    variant = normalize_bopomofo(cells[VARIANT_BOPO_COL])
     entries << [phrase, variant] if variant.length.positive? && variant != bopo
   end
 
@@ -185,7 +187,8 @@ Dir.mktmpdir do |tmpdir|
     version = version_from_name(zip_url)
     puts "Found ZIP: #{zip_url} (version #{version})"
 
-    zip_path = File.join(tmpdir, 'dict_concised.zip')
+    FileUtils.mkdir_p(SOURCES_DIR)
+    zip_path = File.join(SOURCES_DIR, File.basename(zip_url))
     puts 'Downloading...'
     download_file(zip_url, zip_path)
 
