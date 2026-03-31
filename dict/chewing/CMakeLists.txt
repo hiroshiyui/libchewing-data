@@ -1,4 +1,4 @@
-set(TARGETS word.dat tsi.dat alt.dat mini.dat)
+set(TARGETS word.dat tsi.dat alt.dat mini.dat moe_dict_concised.dat)
 add_custom_target(dict_chewing ALL DEPENDS ${TARGETS})
 
 foreach(TARGET ${TARGETS})
